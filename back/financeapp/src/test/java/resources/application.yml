@@ -1,0 +1,43 @@
+# src/test/resources/application.yml
+#
+# Resolve todos os @Value que o Spring injeta no startup de testes:
+#   jwt.secret, jwt.expiration, jwt.refresh-expiration  → JwtService
+#   cors.allowed-origins                                 → CorsConfig
+#   pluggy.*                                             → PluggyProperties
+#
+# Sem este arquivo o spring-dotenv não encontra o .env quando o working
+# directory do IntelliJ/Maven não é a raiz do projeto, causando:
+#   IllegalArgumentException: Could not resolve placeholder 'jwt.secret'
+#
+# Os valores aqui são exclusivos para testes — nunca use em produção.
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/financeapp_test}
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/financeapp_test}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+# JWT — chave Base64 de 256 bits válida apenas para testes
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHktMzI2NDgK
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+# CORS
+cors:
+  allowed-origins: http://localhost:3000
+
+# Pluggy — valores dummy (sem chamadas reais em testes unitários)
+pluggy:
+  base-url: https://api.pluggy.ai
+  client-id: test-client-id
+  client-secret: test-client-secret
+  webhook-secret: test-webhook-secret

@@ -1,0 +1,166 @@
+/* ── Layout ── */
+.clients-container {
+    padding: 40px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.clients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+}
+
+.clients-title {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    letter-spacing: -0.5px;
+}
+
+.clients-subtitle {
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* ── Botões Verdes ── */
+.clients-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary-green {
+    background: linear-gradient(135deg, #113a04 0%, #10b910 100%); /* Forest to Emerald */
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 16, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-primary-green:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
+.btn-icon-secondary {
+    background: white;
+    border: 1px solid hsl(var(--border));
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+}
+
+/* ── Tabela Customizada ── */
+.clients-card {
+    background: white;
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background: hsl(var(--muted) / 0.2);
+    padding: 14px 24px;
+    text-align: left;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.custom-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.custom-table tr:last-child td { border-bottom: none; }
+
+.custom-table tr:hover td {
+    background: #f0fdf4; /* Verde ultra suave no hover */
+    cursor: pointer;
+}
+
+/* ── Status Pills (Verde/Emerald) ── */
+.status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-heading);
+}
+
+.pill--updated {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pill--connection_error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.pill--disconnected {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* ── Client Avatar ── */
+.client-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.client-avatar {
+    width: 36px;
+    height: 36px;
+    background: #ecfdf5;
+    color: #059669;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.client-name {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+/* ── Responsive Helpers ── */
+@media (max-width: 640px) {
+    .hidden-sm { display: none; }
+    .client-email-mobile { display: block; font-size: 12px; color: hsl(var(--muted-foreground)); }
+}
+
+@media (min-width: 641px) {
+    .client-email-mobile { display: none; }
+}
+
+.text-right { text-align: right; }

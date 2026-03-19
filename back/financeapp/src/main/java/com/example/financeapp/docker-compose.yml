@@ -1,0 +1,41 @@
+services:
+
+  # ── MongoDB em modo Replica Set (single-node) ──────────────────────────────
+  # Necessário para @Transactional funcionar no Spring Data MongoDB.
+  # Em standalone (sem --replSet), o MongoTransactionManager lança erro na startup.
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: mongosh --eval "rs.status().ok" --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  # Inicializa o Replica Set uma única vez após o Mongo estar saudável.
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      mongosh --host mongo --eval
+      "rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] })"
+
+  # ── Redis (cache do token Akropoli + distributed lock) ─────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongo_data:
+  redis_data:

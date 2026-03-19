@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { clientsApi, Client } from "@/services/api";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import "../css/Clients.css";
 
 const statusLabel: Record<Client["connectionStatus"], string> = {
-  DISCONNECTED: "Não conectado",
-  CONNECTING: "Conectando...",
+  PENDING: "Pendente",
+  AWAITING_CONSENT: "Aguardando consentimento",
   UPDATING: "Atualizando...",
   UPDATED: "Conectado",
+  LOGIN_ERROR: "Erro de autenticação",
   CONNECTION_ERROR: "Erro de conexão",
+  CONSENT_EXPIRED: "Consentimento expirado",
+  CONSENT_REVOKED: "Consentimento revogado",
 };
 
 const Clients = () => {
@@ -25,7 +28,7 @@ const Clients = () => {
         <header className="clients-header">
           <div>
             <h1 className="clients-title">Base de Clientes</h1>
-            <p className="clients-subtitle">Gerencie conexões e patrimônio via Open Finance</p>
+            <p className="clients-subtitle">Gerencie consentimentos e patrimônio via Open Finance</p>
           </div>
 
           <div className="clients-actions">
@@ -70,7 +73,7 @@ const Clients = () => {
                     <th>Nome do Cliente</th>
                     <th className="hidden-sm">E-mail</th>
                     <th className="hidden-md text-right">Saldo Consolidado</th>
-                    <th>Status Pluggy</th>
+                    <th>Status Akropoli</th>
                     <th className="hidden-lg">Última Sync</th>
                   </tr>
                   </thead>

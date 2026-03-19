@@ -4,18 +4,12 @@
  * ProtectedRoute redireciona para / se não autenticado.
  */
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { authApi, LoginRequest } from "@/services/api";
-
-interface Banker {
-  id: string;
-  name: string;
-  email: string;
-}
+import { authApi, BankerProfile, LoginRequest } from "@/services/api";
 
 interface AuthContextType {
-  banker: Banker | null;
+  banker: BankerProfile | null;
   token: string | null;
   isAuthenticated: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
@@ -26,7 +20,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
-  const [banker, setBanker] = useState<Banker | null>(() => {
+  const [banker, setBanker] = useState<BankerProfile | null>(() => {
     const stored = localStorage.getItem("banker");
     try {
       return stored ? JSON.parse(stored) : null;
@@ -38,6 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: LoginRequest) => {
     const data = await authApi.login(credentials);
     localStorage.setItem("token", data.token);
+    if (data.refreshToken) {
+      localStorage.setItem("refreshToken", data.refreshToken);
+    }
     localStorage.setItem("banker", JSON.stringify(data.banker));
     setToken(data.token);
     setBanker(data.banker);
@@ -45,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("banker");
     setToken(null);
     setBanker(null);

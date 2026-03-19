@@ -74,7 +74,7 @@ public class ClientDto {
         private String cpf;             // CPF completo — somente neste DTO
         private String phone;
         private String bankerId;
-        private String akropoliLinkId; // migração Pluggy → Akropoli (era UUID pluggyItemId)
+        private String akropoliLinkId; // campo atual de consentimento Open Finance
         private ConnectionStatus connectionStatus;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;

@@ -1,10 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { clientsApi, pluggyApi } from "@/services/api";
+import { akropoliApi, clientsApi } from "@/services/api";
 import {
   PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { RefreshCw, Link2, ArrowLeft, Wifi, WifiOff, ExternalLink, User } from "lucide-react";
+import { RefreshCw, Link2, ArrowLeft, Wifi, WifiOff, User } from "lucide-react";
 import "../css/ClientDetail.css";
 
 const BRL = (v: number | null | undefined) =>
@@ -13,14 +13,16 @@ const BRL = (v: number | null | undefined) =>
 const PCT = (v: number | null | undefined) => v != null ? `${v.toFixed(1)}%` : "—";
 
 const CONNECTION_LABELS: Record<string, string> = {
-  DISCONNECTED: "Não conectado",
-  CONNECTING: "Conectando...",
+  PENDING: "Pendente",
+  AWAITING_CONSENT: "Aguardando consentimento",
   UPDATING: "Atualizando...",
   UPDATED: "Conectado",
+  LOGIN_ERROR: "Erro de autenticação",
   CONNECTION_ERROR: "Erro de conexão",
+  CONSENT_EXPIRED: "Consentimento expirado",
+  CONSENT_REVOKED: "Consentimento revogado",
 };
 
-// Paleta Emerald para os Gráficos
 const PIE_COLORS = ["#064e3b", "#065f46", "#059669", "#10b981", "#6ee7b7"];
 
 const ClientDetail = () => {
@@ -36,25 +38,23 @@ const ClientDetail = () => {
 
   const { data: accounts } = useQuery({
     queryKey: ["accounts", id],
-    queryFn: () => pluggyApi.getAccounts(id!),
+    queryFn: () => akropoliApi.getAccounts(id!),
     enabled: !!id && client?.connectionStatus === "UPDATED",
   });
 
-  const { data: txData } = useQuery({
+  const { data: transactions } = useQuery({
     queryKey: ["transactions", id],
-    queryFn: () => pluggyApi.getTransactions(id!, {
-      from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
-      page: 1,
-    }),
+    queryFn: () => akropoliApi.getTransactions(id!),
     enabled: !!id && client?.connectionStatus === "UPDATED",
   });
 
   const syncMutation = useMutation({
-    mutationFn: () => pluggyApi.sync(id!),
+    mutationFn: () => akropoliApi.sync(id!),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", id] });
       qc.invalidateQueries({ queryKey: ["accounts", id] });
+      qc.invalidateQueries({ queryKey: ["transactions", id] });
+      qc.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 
@@ -64,9 +64,9 @@ const ClientDetail = () => {
   const isConnected = client.connectionStatus === "UPDATED";
   const a = client.analytics;
 
-  const categoryData = txData?.results
+  const categoryData = transactions
       ? Object.entries(
-          txData.results
+          transactions
               .filter((t) => t.amount < 0)
               .reduce<Record<string, number>>((acc, t) => {
                 const cat = t.category ?? "Outros";
@@ -81,14 +81,12 @@ const ClientDetail = () => {
 
   return (
       <div className="detail-container">
-        {/* Top Bar */}
         <nav className="detail-nav">
           <button onClick={() => navigate("/clients")} className="btn-back">
             <ArrowLeft size={16} /> Voltar para lista
           </button>
         </nav>
 
-        {/* Profile Header */}
         <header className="profile-header">
           <div className="profile-info">
             <div className="profile-avatar">
@@ -99,7 +97,7 @@ const ClientDetail = () => {
               <div className="profile-meta">
                 <span>{client.email}</span>
                 <span className="dot" />
-                <span>CPF: {client.cpf}</span>
+                <span>CPF: {client.cpfMasked}</span>
               </div>
             </div>
           </div>
@@ -107,7 +105,7 @@ const ClientDetail = () => {
           <div className="profile-actions">
             {!isConnected ? (
                 <button onClick={() => navigate(`/clients/${client.id}/connect`)} className="btn-primary-emerald">
-                  <Link2 size={18} /> Conectar Pluggy
+                  <Link2 size={18} /> Acompanhar Consentimento
                 </button>
             ) : (
                 <button
@@ -122,14 +120,12 @@ const ClientDetail = () => {
           </div>
         </header>
 
-        {/* Connection Status Banner */}
         <div className={`status-banner ${isConnected ? 'status-banner--active' : 'status-banner--warn'}`}>
           {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
-          <span>Status da Conexão: <strong>{CONNECTION_LABELS[client.connectionStatus]}</strong></span>
+          <span>Status da Conexão: <strong>{CONNECTION_LABELS[client.connectionStatus] ?? client.connectionStatus}</strong></span>
           {client.lastSync && <span className="sync-time">Última atualização: {new Date(client.lastSync).toLocaleString()}</span>}
         </div>
 
-        {/* Analytics Grid */}
         {a && (
             <section className="section-block">
               <h2 className="section-title">Resumo Financeiro</h2>
@@ -152,23 +148,21 @@ const ClientDetail = () => {
         )}
 
         <div className="detail-content-grid">
-          {/* accounts list */}
           <section className="section-block">
             <h2 className="section-title">Contas Conectadas</h2>
             <div className="accounts-stack">
-              {accounts?.results.map(acc => (
-                  <div key={acc.id} className="account-item">
+              {accounts?.length ? accounts.map(acc => (
+                  <div key={acc.accountId} className="account-item">
                     <div className="account-details">
-                      <span className="account-type">{acc.subtype}</span>
-                      <span className="account-name">{acc.name}</span>
+                      <span className="account-type">{acc.type}</span>
+                      <span className="account-name">{acc.brandName || "Instituição financeira"}</span>
                     </div>
-                    <span className="account-balance">{BRL(acc.balance)}</span>
+                    <span className="account-balance">Conta {acc.number || "não informada"}</span>
                   </div>
-              ))}
+              )) : <div className="account-item">Nenhuma conta disponível para exibição.</div>}
             </div>
           </section>
 
-          {/* Categories Chart */}
           {categoryData.length > 0 && (
               <section className="section-block chart-container">
                 <h2 className="section-title">Distribuição de Gastos</h2>

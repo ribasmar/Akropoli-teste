@@ -23,8 +23,10 @@ const Dashboard = () => {
 
   const total = clients?.length ?? 0;
   const connected = clients?.filter((c) => c.connectionStatus === "UPDATED").length ?? 0;
-  const errors = clients?.filter((c) => c.connectionStatus === "CONNECTION_ERROR").length ?? 0;
-  const disconnected = clients?.filter((c) => c.connectionStatus === "DISCONNECTED").length ?? 0;
+  const errors = clients?.filter((c) => ["CONNECTION_ERROR", "LOGIN_ERROR"].includes(c.connectionStatus)).length ?? 0;
+  const disconnected = clients?.filter((c) =>
+    ["PENDING", "AWAITING_CONSENT", "CONSENT_EXPIRED", "CONSENT_REVOKED"].includes(c.connectionStatus)
+  ).length ?? 0;
 
   const totalBalance = clients?.reduce((sum, c) => sum + (c.analytics?.currentBalance ?? 0), 0) ?? 0;
 
@@ -32,7 +34,7 @@ const Dashboard = () => {
     { title: "Total de Clientes", value: total, icon: <Users size={20} />, class: "total" },
     { title: "Conectados", value: connected, icon: <TrendingUp size={20} />, class: "connected" },
     { title: "Com Erros", value: errors, icon: <AlertTriangle size={20} />, class: "error" },
-    { title: "Desconectados", value: disconnected, icon: <Minus size={20} />, class: "off" },
+    { title: "Sem Consentimento", value: disconnected, icon: <Minus size={20} />, class: "off" },
   ];
 
   return (
@@ -47,7 +49,6 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* KPI Cards */}
         <div className="kpi-grid">
           {kpis.map((kpi) => (
               <div key={kpi.title} className={`kpi-card kpi-card--${kpi.class}`}>
@@ -64,7 +65,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Patrimônio sob Gestão */}
         <div className="metrics-row">
           <div className="metric-box box--primary">
             <span className="metric-box__label">Patrimônio sob Gestão</span>
@@ -73,7 +73,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Seção Clientes Recentes (Estilo do Print) */}
         <section className="dashboard-section">
           <div className="recent-clients-header">
             <h2 className="section-title">Clientes Recentes</h2>
@@ -99,7 +98,7 @@ const Dashboard = () => {
                     {BRL(client.analytics?.currentBalance ?? 0)}
                   </span>
                         <span className={`client-status-tag ${client.connectionStatus === 'UPDATED' ? 'active' : 'inactive'}`}>
-                    ● {client.connectionStatus === 'UPDATED' ? 'CONECTADO' : 'OFFLINE'}
+                    ● {client.connectionStatus === 'UPDATED' ? 'CONECTADO' : 'AGUARDANDO'}
                   </span>
                       </div>
                     </div>

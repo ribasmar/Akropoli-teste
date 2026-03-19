@@ -11,13 +11,10 @@ import java.util.Map;
 
 /**
  * Tratamento centralizado de exceções da aplicação.
-
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    // ── ClientNotFoundException ───────────────────────────────────────────────
 
     @ExceptionHandler(ClientNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleClientNotFound(ClientNotFoundException ex) {
@@ -26,28 +23,17 @@ public class GlobalExceptionHandler {
                 .body(errorBody("CLIENT_NOT_FOUND", ex.getMessage()));
     }
 
-    // ── AkropoliIntegrationException ──────────────────────────────────────────
-
     @ExceptionHandler(AkropoliIntegrationException.class)
     public ResponseEntity<Map<String, Object>> handleAkropoliIntegration(AkropoliIntegrationException ex) {
-        log.error("Akropoli integration error [{}]: {} | apiResponse={}",
-                ex.getErrorCode(), ex.getMessage(), ex.getPluggyResponse(), ex);
+        log.error("Akropoli integration error [{}]: {}",
+                ex.getErrorCode(), ex.getMessage(), ex);
 
-        // Erros de autenticação/escopo → 502 Bad Gateway (problema com a API externa)
-        // Demais erros de integração → 503 Service Unavailable
         HttpStatus status = "AKROPOLI_AUTH_FAILED".equals(ex.getErrorCode())
                 ? HttpStatus.BAD_GATEWAY
                 : HttpStatus.SERVICE_UNAVAILABLE;
 
-        Map<String, Object> body = errorBody(ex.getErrorCode(), ex.getMessage());
-        if (ex.getPluggyResponse() != null) {
-            body.put("apiDetail", ex.getPluggyResponse());
-        }
-
-        return ResponseEntity.status(status).body(body);
+        return ResponseEntity.status(status).body(errorBody(ex.getErrorCode(), ex.getMessage()));
     }
-
-    // ── IllegalStateException ─────────────────────────────────────────────────
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
@@ -56,8 +42,6 @@ public class GlobalExceptionHandler {
                 .body(errorBody("CONFLICT", ex.getMessage()));
     }
 
-    // ── Fallback ──────────────────────────────────────────────────────────────
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
@@ -65,11 +49,7 @@ public class GlobalExceptionHandler {
                 .body(errorBody("INTERNAL_ERROR", "An unexpected error occurred"));
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
-
     private Map<String, Object> errorBody(String code, String message) {
-        // Using java.util.HashMap directly to keep the map mutable
-        // (so callers can add extra fields like "apiDetail")
         java.util.Map<String, Object> body = new java.util.HashMap<>();
         body.put("errorCode", code);
         body.put("message", message);

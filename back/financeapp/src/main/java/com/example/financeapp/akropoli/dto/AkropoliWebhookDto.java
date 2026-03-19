@@ -44,7 +44,7 @@ public class AkropoliWebhookDto {
 
     /**
      * ID do link (consentimento ativo) na Akropoli.
-     * Equivalente ao pluggyItemId — chave para buscar dados do cliente.
+     * Identificador do consentimento/vínculo usado para buscar dados do cliente.
      * Presente em todos os eventos exceto CONSENT_REJECTED.
      */
     @JsonProperty("link_id")

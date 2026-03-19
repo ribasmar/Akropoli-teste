@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. TOKEN & AUTH (Obrigatório para iniciar)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### 1.1 Gerar Token de Cliente Akropoli
+# Fluxo interno de autenticação com a Akropoli
+POST {{baseUrl}}/api/v1/akropoli/token
+Authorization: Bearer {{token}}
+
+> {% client.global.set("akropoliAccessToken", response.body.access_token); %}
+
+
+### 2.1 Listar Contas do Link
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/accounts
+Authorization: Bearer {{token}}
+
+### 2.2 Saldo de uma Conta Específica
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/accounts/{{accountId}}/balances
+Authorization: Bearer {{token}}
+
+### 2.3 Limites da Conta
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/accounts/{{accountId}}/limits
+Authorization: Bearer {{token}}
+
+### 2.4 Transações da Conta
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/accounts/{{accountId}}/transactions
+Authorization: Bearer {{token}}
+
+### 2.5 Transações Atuais (Recent)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/accounts/{{accountId}}/transactions-current
+Authorization: Bearer {{token}}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. CREDIT CARDS (Cartões)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### 3.1 Listar Cartões
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards
+Authorization: Bearer {{token}}
+
+### 3.2 Detalhes de um Cartão
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards/{{cardId}}
+Authorization: Bearer {{token}}
+
+### 3.3 Limites do Cartão
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards/{{cardId}}/limits
+Authorization: Bearer {{token}}
+
+### 3.4 Faturas (Bills) do Cartão
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards/{{cardId}}/bills
+Authorization: Bearer {{token}}
+
+### 3.5 Transações da Fatura Específica
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards/{{cardId}}/bills/{{billId}}/transactions
+Authorization: Bearer {{token}}
+
+### 3.6 Transações Gerais do Cartão
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/credit-cards/{{cardId}}/transactions
+Authorization: Bearer {{token}}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. LOANS & FINANCINGS (Empréstimos e Financiamentos)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### 4.1 Listar Empréstimos (Loans)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/loans
+Authorization: Bearer {{token}}
+
+### 4.2 Detalhes do Empréstimo
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/loans/{{contractId}}
+Authorization: Bearer {{token}}
+
+### 4.3 Garantias de Empréstimo
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/loans/{{contractId}}/warranties
+Authorization: Bearer {{token}}
+
+### 4.4 Pagamentos de Empréstimo
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/loans/{{contractId}}/payments
+Authorization: Bearer {{token}}
+
+### 4.5 Parcelas Agendadas (Loans)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/loans/{{contractId}}/scheduled-instalments
+Authorization: Bearer {{token}}
+
+### 4.6 Listar Financiamentos (Financings)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/financings
+Authorization: Bearer {{token}}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. INVESTMENTS (Fundos e Renda Fixa)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### 5.1 Listar Fundos de Investimento
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/investments/funds
+Authorization: Bearer {{token}}
+
+### 5.2 Saldo em Fundos
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/investments/funds/{{investmentId}}/balances
+Authorization: Bearer {{token}}
+
+### 5.3 Renda Fixa Bancária
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/investments/bank-fixed-incomes
+Authorization: Bearer {{token}}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. CUSTOMERS & RESOURCES (Dados Cadastrais)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### 6.1 Identificações do Cliente (Open Finance)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/identifications
+Authorization: Bearer {{token}}
+
+### 6.2 Recursos Disponíveis (Scope do Link)
+GET {{baseUrl}}/api/v1/akropoli/links/{{itemId}}/data/resources
+Authorization: Bearer {{token}}

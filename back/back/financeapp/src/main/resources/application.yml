@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: ${APP_NAME:openfinance-dashboard}
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB:financeapp}
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # IMPORTANTE: trocar para "validate" antes de ir a produção.
+      # "update" é aceitável em dev, perigoso em prod (pode perder dados).
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
+cors:
+  # Origens permitidas. Em produção, restringir ao domínio real do frontend.
+  # Múltiplas origens separadas por vírgula: https://app.seudominio.com
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# ── Akropoli Open Finance ─────────────────────────────────────────────────────
+akropoli:
+  base-url: ${AKROPOLI_BASE_URL}
+  client-id: ${AKROPOLI_CLIENT_ID}
+  client-secret: ${AKROPOLI_CLIENT_SECRET}
+  # Deixar em branco desativa verificação HMAC (dev only).
+  # Em produção, sempre configurar com o secret fornecido pela Akropoli.
+  webhook-secret: ${AKROPOLI_WEBHOOK_SECRET:}
+  # TTL do token em segundos. Confirmar com o suporte da Akropoli.
+  # Default conservador: 3600s (1 hora). Ajustar se necessário.
+  token-ttl-seconds: ${AKROPOLI_TOKEN_TTL:3600}
+
+# ── Criptografia de campos sensíveis ────────────────────────────────────────
+encryption:
+  # Chave AES-256 em Base64 (32 bytes). Gerar: openssl rand -base64 32
+  # Em produção: injetar via variável de ambiente, nunca hardcoded.
+  key: ${ENCRYPTION_KEY}
+  # Chave HMAC-SHA256 separada para hashes determinísticos de busca.
+  # Gerar com: openssl rand -base64 32
+  hash-secret: ${HASH_SECRET}
+
+# ── Actuator — proteção de endpoints sensíveis ────────────────────────────────
+management:
+  endpoint:
+    env:
+      # Garante que secrets não vazem via /actuator/env mesmo com @ToString.Exclude
+      keys-to-sanitize: clientSecret,webhookSecret,secret,password,token,key,credential
+
+logging:
+  level:
+    root: INFO
+    com.example.financeapp: DEBUG
+    org.springframework.security: DEBUG
+    org.mongodb.driver: WARN
+    org.hibernate.SQL: WARN
+
+---
+# Perfil dev: ativa SSL inseguro e configurações de teste
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+
+akropoli:
+  base-url: ${AKROPOLI_BASE_URL:https://api.akropoli.com.br}
+  # Em dev, webhook-secret vazio ativa bypass HMAC
+  webhook-secret: ${AKROPOLI_WEBHOOK_SECRET:}

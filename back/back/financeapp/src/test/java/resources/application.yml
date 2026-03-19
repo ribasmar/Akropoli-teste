@@ -1,0 +1,32 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/financeapp_test}
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/financeapp_test}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHktMzI2NDgK
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+cors:
+  allowed-origins: http://localhost:3000
+
+akropoli:
+  base-url: https://api.akropoli.com.br
+  client-id: test-client-id
+  client-secret: test-client-secret
+  webhook-secret: test-webhook-secret
+  token-ttl-seconds: 3600
+
+encryption:
+  key: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  hash-secret: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=

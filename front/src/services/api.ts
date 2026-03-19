@@ -1,15 +1,78 @@
 /**
  * api.ts — cliente HTTP centralizado
  * Injeta automaticamente o JWT em todas as requisições autenticadas.
- * Redireciona para /login se o token expirar (401).
+ * Redireciona para / se a sessão expirar.
  */
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+export interface BankerProfile {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+}
+
+export interface AuthSession {
+  token: string;
+  refreshToken?: string;
+  banker: BankerProfile;
+}
+
+export type ConnectionStatus =
+  | "PENDING"
+  | "AWAITING_CONSENT"
+  | "UPDATING"
+  | "UPDATED"
+  | "LOGIN_ERROR"
+  | "CONNECTION_ERROR"
+  | "CONSENT_EXPIRED"
+  | "CONSENT_REVOKED";
 
 function getToken(): string | null {
   return localStorage.getItem("token");
+}
+
+function clearSession() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("banker");
+}
+
+interface LegacyLoginResponse {
+  token: string;
+  refreshToken?: string;
+  banker: BankerProfile;
+}
+
+interface LoginResponse {
+  token: string;
+  refreshToken?: string;
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+}
+
+export function normalizeAuthResponse(raw: LoginResponse | LegacyLoginResponse): AuthSession {
+  if ("banker" in raw) {
+    return {
+      token: raw.token,
+      refreshToken: raw.refreshToken,
+      banker: raw.banker,
+    };
+  }
+
+  return {
+    token: raw.token,
+    refreshToken: raw.refreshToken,
+    banker: {
+      id: raw.id,
+      name: raw.name,
+      email: raw.email,
+      role: raw.role,
+    },
+  };
 }
 
 async function request<T>(
@@ -24,7 +87,7 @@ async function request<T>(
 
   if (authenticated) {
     const token = getToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -33,7 +96,7 @@ async function request<T>(
   });
 
   if (response.status === 401) {
-    localStorage.removeItem("token");
+    clearSession();
     window.location.href = "/";
     throw new Error("Sessão expirada. Faça login novamente.");
   }
@@ -55,20 +118,9 @@ async function request<T>(
   }
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-
 export interface LoginRequest {
   email: string;
   password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  banker: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 export interface RegisterRequest {
@@ -78,14 +130,24 @@ export interface RegisterRequest {
 }
 
 export const authApi = {
-  login: (body: LoginRequest) =>
-    request<LoginResponse>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(body) }, false),
+  login: async (body: LoginRequest) =>
+    normalizeAuthResponse(
+      await request<LoginResponse | LegacyLoginResponse>(
+        "/api/v1/auth/login",
+        { method: "POST", body: JSON.stringify(body) },
+        false
+      )
+    ),
 
-  register: (body: RegisterRequest) =>
-    request<LoginResponse>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(body) }, false),
+  register: async (body: RegisterRequest) =>
+    normalizeAuthResponse(
+      await request<LoginResponse | LegacyLoginResponse>(
+        "/api/v1/auth/register",
+        { method: "POST", body: JSON.stringify(body) },
+        false
+      )
+    ),
 };
-
-// ── Clients ───────────────────────────────────────────────────────────────────
 
 export interface Analytics {
   currentBalance: number | null;
@@ -102,11 +164,11 @@ export interface Client {
   id: string;
   name: string;
   email: string;
-  cpf: string;
+  cpfMasked: string;
   phone: string;
   bankerId: string;
-  pluggyItemId: string | null;
-  connectionStatus: "PENDING" | "CONNECTING" | "UPDATING" | "UPDATED" | "LOGIN_ERROR" | "CONNECTION_ERROR";
+  akropoliLinkId: string | null;
+  connectionStatus: ConnectionStatus;
   createdAt: string;
   updatedAt: string;
   lastSync: string | null;
@@ -127,93 +189,85 @@ export interface UpdateClientRequest {
 }
 
 export const clientsApi = {
-  list: () =>
-    request<Client[]>("/api/v1/clients"),
-
-  getById: (id: string) =>
-    request<Client>(`/api/v1/clients/${id}`),
-
+  list: () => request<Client[]>("/api/v1/clients"),
+  getById: (id: string) => request<Client>(`/api/v1/clients/${id}`),
   create: (body: CreateClientRequest) =>
     request<Client>("/api/v1/clients", { method: "POST", body: JSON.stringify(body) }),
-
   update: (id: string, body: UpdateClientRequest) =>
     request<Client>(`/api/v1/clients/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-
-  delete: (id: string) =>
-    request<void>(`/api/v1/clients/${id}`, { method: "DELETE" }),
+  delete: (id: string) => request<void>(`/api/v1/clients/${id}`, { method: "DELETE" }),
 };
 
-// ── Pluggy ────────────────────────────────────────────────────────────────────
-
-export interface ConnectTokenResponse {
-  accessToken: string;
-  expiresAt: string;
+export interface Account {
+  accountId: string;
+  brandName: string;
+  number: string;
+  type: string;
+  compeCode: string;
+  ispb: string;
 }
 
-export interface Account {
-  id: string;
-  name: string;
-  number: string;
-  balance: number;
-  currencyCode: string;
+interface BackendAccountTransaction {
+  transactionId: string;
+  transactionName: string;
   type: string;
-  subtype: string;
-  itemId: string;
+  creditDebitIndicator: string;
+  amount?: {
+    amount?: string;
+    value?: string;
+  };
+  transactionDate: string;
 }
 
 export interface Transaction {
   id: string;
   description: string;
-  currencyCode: string;
   amount: number;
   date: string;
-  balance: number;
   category: string;
   type: string;
-  accountId: string;
 }
 
 export interface Investment {
-  id: string;
-  name: string;
-  balance: number;
-  currencyCode: string;
-  type: string;
-  date: string;
-  rate: number;
-  itemId: string;
+  investmentId: string;
+  name?: string;
+  productType?: string;
 }
 
-export interface TransactionListResponse {
-  total: number;
-  totalPages: number;
-  page: number;
-  results: Transaction[];
+function parseAmount(amount?: { amount?: string; value?: string }, indicator?: string) {
+  const rawValue = amount?.amount ?? amount?.value ?? "0";
+  const numericValue = Number(rawValue);
+  return indicator === "DEBITO" ? -Math.abs(numericValue) : Math.abs(numericValue);
 }
 
-export const pluggyApi = {
-  getConnectToken: (clientId: string) =>
-    request<ConnectTokenResponse>(`/api/v1/clients/${clientId}/pluggy/connect-token`, { method: "POST" }),
+function normalizeTransaction(transaction: BackendAccountTransaction): Transaction {
+  return {
+    id: transaction.transactionId,
+    description: transaction.transactionName ?? "Transação",
+    amount: parseAmount(transaction.amount, transaction.creditDebitIndicator),
+    date: transaction.transactionDate,
+    category: transaction.transactionName ?? "Outros",
+    type: transaction.type ?? transaction.creditDebitIndicator ?? "N/A",
+  };
+}
 
-  notifyItemConnected: (clientId: string, itemId: string) =>
-    request<void>(`/api/v1/clients/${clientId}/pluggy/items/${itemId}`, { method: "POST" }),
-
+export const akropoliApi = {
   getAccounts: (clientId: string) =>
-    request<{ total: number; results: Account[] }>(`/api/v1/clients/${clientId}/pluggy/accounts`),
+    request<Account[]>(`/api/v1/clients/${clientId}/akropoli/accounts`),
 
-  getTransactions: (clientId: string, params?: { from?: string; to?: string; page?: number }) => {
-    const qs = new URLSearchParams();
-    if (params?.from) qs.set("from", params.from);
-    if (params?.to) qs.set("to", params.to);
-    if (params?.page) qs.set("page", String(params.page));
-    return request<TransactionListResponse>(
-      `/api/v1/clients/${clientId}/pluggy/transactions?${qs.toString()}`
-    );
-  },
+  getTransactions: async (clientId: string) =>
+    (
+      await request<BackendAccountTransaction[]>(
+        `/api/v1/clients/${clientId}/akropoli/transactions`
+      )
+    ).map(normalizeTransaction),
 
   getInvestments: (clientId: string) =>
-    request<{ total: number; results: Investment[] }>(`/api/v1/clients/${clientId}/pluggy/investments`),
+    request<Investment[]>(`/api/v1/clients/${clientId}/akropoli/investments/funds`),
+
+  getResources: (clientId: string) =>
+    request<Array<{ type: string }>>(`/api/v1/clients/${clientId}/akropoli/resources`),
 
   sync: (clientId: string) =>
-    request<void>(`/api/v1/clients/${clientId}/pluggy/sync`, { method: "POST" }),
+    request<void>(`/api/v1/clients/${clientId}/akropoli/sync`, { method: "POST" }),
 };

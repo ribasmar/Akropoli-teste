@@ -60,7 +60,7 @@ const AddClient = () => {
           Adicionar Novo Cliente
         </h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Preencha os dados do cliente. Após o cadastro, você poderá conectar a conta bancária via Pluggy.
+          Preencha os dados do cliente. Após o cadastro, você poderá acompanhar o consentimento Open Finance via Akropoli.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

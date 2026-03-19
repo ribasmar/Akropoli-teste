@@ -17,15 +17,15 @@ public enum ErrorCode {
     CLIENT_ALREADY_EXISTS("CLIENT_002", "Cliente já cadastrado", HttpStatus.CONFLICT),
     CLIENT_INVALID_DATA("CLIENT_003", "Dados do cliente inválidos", HttpStatus.UNPROCESSABLE_ENTITY),
 
-    // ── Pluggy ────────────────────────────────────────────────────────────────
-    PLUGGY_AUTHENTICATION_FAILED("PLUGGY_001", "Falha na autenticação com a Pluggy", HttpStatus.BAD_GATEWAY),
-    PLUGGY_CONNECT_TOKEN_FAILED("PLUGGY_002", "Falha ao gerar connect token", HttpStatus.BAD_GATEWAY),
-    PLUGGY_ITEM_NOT_FOUND("PLUGGY_003", "Item Pluggy não encontrado", HttpStatus.NOT_FOUND),
-    PLUGGY_ACCOUNTS_FETCH_FAILED("PLUGGY_004", "Falha ao buscar contas", HttpStatus.BAD_GATEWAY),
-    PLUGGY_TRANSACTIONS_FETCH_FAILED("PLUGGY_005", "Falha ao buscar transações", HttpStatus.BAD_GATEWAY),
-    PLUGGY_INVESTMENTS_FETCH_FAILED("PLUGGY_006", "Falha ao buscar investimentos", HttpStatus.BAD_GATEWAY),
-    PLUGGY_TIMEOUT("PLUGGY_007", "Timeout na integração com a Pluggy", HttpStatus.GATEWAY_TIMEOUT),
-    PLUGGY_TOKEN_NOT_FOUND("PLUGGY_008", "Token de conexão Pluggy não encontrado para este cliente", HttpStatus.NOT_FOUND),
+    // ── Akropoli ──────────────────────────────────────────────────────────────
+    AKROPOLI_AUTHENTICATION_FAILED("AKROPOLI_001", "Falha na autenticação com a Akropoli", HttpStatus.BAD_GATEWAY),
+    AKROPOLI_CONSENT_LINK_FAILED("AKROPOLI_002", "Falha ao preparar o fluxo de consentimento", HttpStatus.BAD_GATEWAY),
+    AKROPOLI_LINK_NOT_FOUND("AKROPOLI_003", "Link Akropoli não encontrado", HttpStatus.NOT_FOUND),
+    AKROPOLI_ACCOUNTS_FETCH_FAILED("AKROPOLI_004", "Falha ao buscar contas", HttpStatus.BAD_GATEWAY),
+    AKROPOLI_TRANSACTIONS_FETCH_FAILED("AKROPOLI_005", "Falha ao buscar transações", HttpStatus.BAD_GATEWAY),
+    AKROPOLI_INVESTMENTS_FETCH_FAILED("AKROPOLI_006", "Falha ao buscar investimentos", HttpStatus.BAD_GATEWAY),
+    AKROPOLI_TIMEOUT("AKROPOLI_007", "Timeout na integração com a Akropoli", HttpStatus.GATEWAY_TIMEOUT),
+    AKROPOLI_TOKEN_NOT_FOUND("AKROPOLI_008", "Token de acesso Akropoli não encontrado para este cliente", HttpStatus.NOT_FOUND),
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
     DASHBOARD_DATA_UNAVAILABLE("DASH_001", "Dados de dashboard indisponíveis", HttpStatus.NOT_FOUND),

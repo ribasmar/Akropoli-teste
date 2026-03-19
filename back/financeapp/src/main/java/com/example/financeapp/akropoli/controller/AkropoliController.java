@@ -59,7 +59,7 @@ public class AkropoliController {
     }
 
     /**
-     * Lista cartões de crédito com limites. Novo endpoint (não existia na Pluggy).
+     * Lista cartões de crédito com limites da integração Akropoli.
      * GET /api/v1/clients/{clientId}/akropoli/credit-cards
      */
     @GetMapping(value = "/credit-cards", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,7 +71,7 @@ public class AkropoliController {
     }
 
     /**
-     * Lista empréstimos e financiamentos. Novo endpoint (não existia na Pluggy).
+     * Lista empréstimos e financiamentos da integração Akropoli.
      * GET /api/v1/clients/{clientId}/akropoli/loans
      */
     @GetMapping(value = "/loans", produces = MediaType.APPLICATION_JSON_VALUE)

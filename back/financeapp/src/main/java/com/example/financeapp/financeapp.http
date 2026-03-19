@@ -3,7 +3,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 ### 1.1 Gerar Token de Cliente Akropoli
-# Substitui o fluxo de connect-token da Pluggy
+# Fluxo interno de autenticação com a Akropoli
 POST {{baseUrl}}/api/v1/akropoli/token
 Authorization: Bearer {{token}}
 

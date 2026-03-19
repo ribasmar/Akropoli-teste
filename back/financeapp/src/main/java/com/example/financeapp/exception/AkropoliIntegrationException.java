@@ -9,36 +9,29 @@ package com.example.financeapp.exception;
 public class AkropoliIntegrationException extends RuntimeException {
 
     private final String errorCode;
-    private final String pluggyResponse; // mantido como "pluggyResponse" para compatibilidade com GlobalExceptionHandler
+    private final String apiResponse;
 
-    private AkropoliIntegrationException(String message, String errorCode, String pluggyResponse) {
+    private AkropoliIntegrationException(String message, String errorCode, String apiResponse) {
         super(message);
-        this.errorCode     = errorCode;
-        this.pluggyResponse = pluggyResponse;
+        this.errorCode = errorCode;
+        this.apiResponse = apiResponse;
     }
 
-    private AkropoliIntegrationException(String message, String errorCode, String pluggyResponse, Throwable cause) {
+    private AkropoliIntegrationException(String message, String errorCode, String apiResponse, Throwable cause) {
         super(message, cause);
-        this.errorCode     = errorCode;
-        this.pluggyResponse = pluggyResponse;
+        this.errorCode = errorCode;
+        this.apiResponse = apiResponse;
     }
-
-    // ── Getters ───────────────────────────────────────────────────────────────
 
     public String getErrorCode() {
         return errorCode;
     }
 
     /** Retorna detalhes da resposta de erro da API externa (Akropoli). */
-    public String getPluggyResponse() {
-        return pluggyResponse;
+    public String getApiResponse() {
+        return apiResponse;
     }
 
-    // ── Factory methods ───────────────────────────────────────────────────────
-
-    /**
-     * Falha de autenticação ao obter token de acesso Akropoli.
-     */
     public static AkropoliIntegrationException authenticationFailed(Throwable cause) {
         return new AkropoliIntegrationException(
                 "Failed to authenticate with Akropoli API",
@@ -47,12 +40,6 @@ public class AkropoliIntegrationException extends RuntimeException {
                 cause);
     }
 
-    /**
-     * Falha ao buscar dados de um endpoint específico.
-     *
-     * @param endpoint  path da URL que falhou
-     * @param cause     exceção original (WebClientResponseException)
-     */
     public static AkropoliIntegrationException fetchFailed(String endpoint, Throwable cause) {
         return new AkropoliIntegrationException(
                 "Failed to fetch data from Akropoli endpoint: " + endpoint,
@@ -61,11 +48,6 @@ public class AkropoliIntegrationException extends RuntimeException {
                 cause);
     }
 
-    /**
-     * Cliente não possui linkId associado — consentimento ainda não foi concedido.
-     *
-     * @param clientId  ID do cliente no MongoDB
-     */
     public static AkropoliIntegrationException linkIdNotFound(String clientId) {
         return new AkropoliIntegrationException(
                 "Client has no active Akropoli linkId: " + clientId,
@@ -73,11 +55,6 @@ public class AkropoliIntegrationException extends RuntimeException {
                 null);
     }
 
-    /**
-     * Consentimento do cliente expirou — renovação necessária.
-     *
-     * @param clientId  ID do cliente no MongoDB
-     */
     public static AkropoliIntegrationException consentExpired(String clientId) {
         return new AkropoliIntegrationException(
                 "Akropoli consent has expired for client: " + clientId,
@@ -85,11 +62,6 @@ public class AkropoliIntegrationException extends RuntimeException {
                 null);
     }
 
-    /**
-     * Endpoint chamado fora do escopo autorizado pelo usuário (HTTP 403).
-     *
-     * @param endpoint  path da URL que retornou 403
-     */
     public static AkropoliIntegrationException consentScopeMissing(String endpoint) {
         return new AkropoliIntegrationException(
                 "Resource not authorized in consent scope: " + endpoint,

@@ -11,15 +11,11 @@ public interface BankerRepository extends MongoRepository<Banker, String> {
 
     /**
      * Busca por email usando o hash determinístico (HMAC-SHA256).
-     * Substitui findByEmail() — email agora é criptografado com AES-256-GCM.
-     *
-     * Uso: repository.findByEmailHash(hashService.hashEmail(email))
      */
     Optional<Banker> findByEmailHash(String emailHash);
 
     /**
      * Verifica existência por email via hash.
-     * Substitui existsByEmail().
      */
     boolean existsByEmailHash(String emailHash);
 }

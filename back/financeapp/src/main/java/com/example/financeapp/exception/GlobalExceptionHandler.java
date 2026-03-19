@@ -30,8 +30,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AkropoliIntegrationException.class)
     public ResponseEntity<Map<String, Object>> handleAkropoliIntegration(AkropoliIntegrationException ex) {
-        // Loga apenas errorCode e message — nunca o pluggyResponse (pode conter PII/dados bancários)
-        log.error("Akropoli integration error [{}]: {}", ex.getErrorCode(), ex.getMessage());
+        log.error("Akropoli integration error [{}]: {} | apiResponse={}",
+                ex.getErrorCode(), ex.getMessage(), ex.getPluggyResponse(), ex);
 
         // Erros de autenticação/escopo → 502 Bad Gateway (problema com a API externa)
         // Demais erros de integração → 503 Service Unavailable
@@ -39,8 +39,12 @@ public class GlobalExceptionHandler {
                 ? HttpStatus.BAD_GATEWAY
                 : HttpStatus.SERVICE_UNAVAILABLE;
 
-        // Nunca devolver apiDetail ao cliente — pode conter dados sensíveis da Akropoli
-        return ResponseEntity.status(status).body(errorBody(ex.getErrorCode(), ex.getMessage()));
+        Map<String, Object> body = errorBody(ex.getErrorCode(), ex.getMessage());
+        if (ex.getPluggyResponse() != null) {
+            body.put("apiDetail", ex.getPluggyResponse());
+        }
+
+        return ResponseEntity.status(status).body(body);
     }
 
     // ── IllegalStateException ─────────────────────────────────────────────────
